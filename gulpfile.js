@@ -7,11 +7,15 @@ var minifyCss = require('gulp-minify-css');
 var rename = require('gulp-rename');
 var sh = require('shelljs');
 var wiredep = require('wiredep').stream;
+var inject = require("gulp-inject");
 
 var paths = {
   sass: ['./scss/**/*.scss'],
-  js: ['./www/lib/**/*.js'],
-  views: ['./www/*.html']
+  clientJS: ['./www/config.js', './www/application.js', './www/modules/**/*.js'],
+  vendorJS: ['./www/lib/**/*.js'],
+  clientCss: ['./www/modules/**/*.css'],
+  vendorCss: ['./www/lib/**/*.css'],
+  views: ['./www/modules/**/*.html']
 };
 
 gulp.task('sass', function(done) {
@@ -36,13 +40,33 @@ gulp.task('wiredep', function () {
               return '<script src="' + filePath + '"></script>';
             },
             css: function(filePath) {
+              console.log(filePath);
               return '<link rel="stylesheet" href="' + filePath + '"/>';
             }
           }
         }
-      }
+      },
+      // Ignore everything that is contained within ionic.bundle.js
+      exclude: [/angular/,
+      /angular-animate/,
+      /angular-sanitize/,
+      /angular-ui-router/,
+      /ionic-angular/,
+      /collide/,
+      /ionic.js/]
     }))
     .pipe(gulp.dest('./www/'));
+});
+
+gulp.task('injector', function () {
+  // It's not necessary to read the files (will speed up things), we're only after their paths:
+  var sources = gulp.src(paths.clientJS.concat(paths.clientCss), {read: false});
+
+  gulp.src('./www/index.html')
+  .pipe(inject(sources, {
+    ignorePath: 'www/'
+  }))
+    .pipe(gulp.dest('./www'));
 });
 
 gulp.task('watch', function() {
@@ -69,5 +93,6 @@ gulp.task('git-check', function(done) {
   done();
 });
 
+gulp.task('dependencies', ['wiredep', 'injector']);
 
-gulp.task('default', ['sass', 'wiredep']);
+gulp.task('default', ['sass', 'dependencies']);
