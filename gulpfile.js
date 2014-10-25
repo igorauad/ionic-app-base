@@ -6,12 +6,13 @@ var sass = require('gulp-sass');
 var minifyCss = require('gulp-minify-css');
 var rename = require('gulp-rename');
 var sh = require('shelljs');
+var wiredep = require('wiredep').stream;
 
 var paths = {
-  sass: ['./scss/**/*.scss']
+  sass: ['./scss/**/*.scss'],
+  js: ['./www/lib/**/*.js'],
+  views: ['./www/*.html']
 };
-
-gulp.task('default', ['sass']);
 
 gulp.task('sass', function(done) {
   gulp.src('./scss/ionic.app.scss')
@@ -23,6 +24,25 @@ gulp.task('sass', function(done) {
     .pipe(rename({ extname: '.min.css' }))
     .pipe(gulp.dest('./www/css/'))
     .on('end', done);
+});
+
+gulp.task('wiredep', function () {
+  gulp.src('./www/index.html')
+    .pipe(wiredep({
+      fileTypes: {
+        html: {
+          replace: {
+            js: function(filePath) {
+              return '<script src="' + filePath + '"></script>';
+            },
+            css: function(filePath) {
+              return '<link rel="stylesheet" href="' + filePath + '"/>';
+            }
+          }
+        }
+      }
+    }))
+    .pipe(gulp.dest('./www/'));
 });
 
 gulp.task('watch', function() {
@@ -48,3 +68,6 @@ gulp.task('git-check', function(done) {
   }
   done();
 });
+
+
+gulp.task('default', ['sass', 'wiredep']);

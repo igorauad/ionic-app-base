@@ -3,5 +3,12 @@
   "private": "true",
   "devDependencies": {
     "ionic": "driftyco/ionic-bower#1.0.0-beta.13"
-  }
-}
+    },
+    "dependencies": {
+     "angular": "~1.2.26",
+     "angular-animate": "~1.2.26",
+     "angular-sanitize": "~1.2.26",
+     "angular-ui-router": "~0.2.10",
+     "ngCordova": "~0.1.5-alpha"
+   }
+ }
